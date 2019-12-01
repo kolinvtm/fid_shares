@@ -22,7 +22,9 @@ class Micex:
         
         df=self.make_df_from_iss(r.text)
         
-        self.secids_with_names = df.loc[((df.name.str.endswith('ао'))|(df.name.str.endswith('shs')))&(df.mainboardid=='TQBR'),['secid','name']]
+        self.secids_with_names = df.loc[((df.name.str.endswith('ао'))|
+                                         (df.name.str.endswith('shs')))&
+                                         (df.mainboardid=='TQBR'),['secid','name']]
         
         return self.secids_with_names 
         
