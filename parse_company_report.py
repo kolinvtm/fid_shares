@@ -31,7 +31,8 @@ class CompanyBS:
 
         soup = BeautifulSoup(r.text, 'lxml')
 
-        table = np.array([z for z in [(x.find('th').text.replace('\n','').replace('\t',''),                 [y.text.replace('\n','').replace('\t','') for y in x.find_all('td')]) 
+        table = np.array([z for z in [(x.find('th').text.replace('\n','').replace('\t',''),
+                                     [y.text.replace('\n','').replace('\t','') for y in x.find_all('td')]) 
                                       for x in soup.find('table').find_all('tr') if x.find('th')]])
 
         cols = table[0,1][1:6]
