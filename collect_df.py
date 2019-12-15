@@ -43,11 +43,6 @@ def iter_parse(self, market='shares', from_ = '2014-01-01', till_=None):
         if till_ == None:
             till_ = mk_date_format(self)
 
-        start_ = 0
-        limit_ = 100
-
-        total = 500
-
         df_target = pd.DataFrame()
 
         if market=='shares':
@@ -60,6 +55,11 @@ def iter_parse(self, market='shares', from_ = '2014-01-01', till_=None):
 
         for sec in iterator:
             print(sec)
+            
+            start_ = 0
+            limit_ = 100
+            total = 500
+            
             while start_<total:
 
                 html = requests.get(micex_url.format(market,boardgroup,sec,from_,till_,start_,limit_)).text
@@ -83,34 +83,39 @@ df = iter_parse(m)
 
 index.set_index('tradedate', inplace=True)
 
-df.set_index('tradedate', inplace=True)
-
 index['close'] = index['close'].astype('float32')
 index['Index_chg'] = index['close']/index['close'].shift(1)
 
-new = pd.concat([df,index['Index_chg']],axis=1)
-new.replace('',np.nan, inplace=True)
 
-new['close']=new['close'].astype('float32')
+df['Index_chg'] = df['tradedate'].map({k:v for k,v in zip(index.index,index['Index_chg'])})
+df.replace('',np.nan, inplace=True)
 
-new['Close_chg']  =new['close']/new['close'].shift()
+for col in ['close','open','high','low','value']:
+    df[col]=df[col].astype('float32')
+
+df['d_high_low'] = df['high']-df['low']
+df['d_close_open'] = df['close']-df['open']
+
+new = pd.DataFrame()
+
+for group in df.groupby('secid'):
+    
+    print(group[0])
+    
+    gr1 = group[1].copy()
+    
+    gr1['Close_chg'] =gr1['close']/gr1['close'].shift()
+
+    gr1['d_high_low']=gr1['d_high_low']/gr1['d_high_low'].shift()
+
+    gr1.loc[group[1]['d_high_low']==np.inf,['d_high_low']]=0
+    gr1['value_chg']=gr1['value']/gr1['value'].shift()
+    
+    new = pd.concat([new, gr1], sort=False, ignore_index=True)
+
 
 new['Label'] = new['Close_chg']>new['Index_chg']
-
-new['high'] = new['high'].astype('float32')
-new['low'] = new['low'].astype('float32')
-new['value']=new['value'].astype('float32')
-new['close'] = new['close'].astype('float32')
-new['open'] = new['open'].astype('float32')
-
-new['d_high_low'] = new['high']-new['low']
-new['d_close_open'] = new['close']-new['open']
-
-new['d_high_low']=new['d_high_low']/new['d_high_low'].shift()
-
-new.loc[new['d_high_low']==np.inf,['d_high_low']]=0
-
-new['value_chg']=new['value']/new['value'].shift()
+new['Label'] = new['Label'].map({True:1, False:0})
 
 
 print("""Correlations:
