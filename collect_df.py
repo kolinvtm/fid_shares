@@ -28,7 +28,7 @@ def make_df_from_iss(html):
     for d in [{k:int(x[k]) for k in meta_} for x in soup.find_all('rows')[1].find_all('row')]:
         meta_dict.update(d)
 
-    return df,meta_dict
+    return df, meta_dict
 
 def mk_date_format(self, date_ = None):
         if date_ == None:
@@ -38,7 +38,7 @@ def mk_date_format(self, date_ = None):
             self.date_ = date_
             return datetime.datetime.strftime(date_,"%Y-%m-%d")
 
-def make_df_from_iss_new(self, market='shares', from_ = '2019-12-01', till_=None):
+def iter_parse(self, market='shares', from_ = '2014-01-01', till_=None):
 
         if till_ == None:
             till_ = mk_date_format(self)
@@ -78,8 +78,8 @@ micex_url = "https://iss.moex.com/iss/history/engines/stock/markets/{}{}securiti
 
 m = micex.Micex()
 
-index = make_df_from_iss_new(m,market='index')
-df = make_df_from_iss_new(m)
+index = iter_parse(m,market='index')
+df = iter_parse(m)
 
 index.set_index('tradedate', inplace=True)
 
@@ -133,7 +133,7 @@ holidays_= [datetime.datetime(y,m,d)
 #c
 dev = pd.DataFrame()
 
-startdate = datetime.datetime(2019,12,1)
+startdate = datetime.datetime(2014,1,1)
 enddate = datetime.datetime.now()
 
 while startdate<=enddate:
