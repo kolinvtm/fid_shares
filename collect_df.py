@@ -12,6 +12,7 @@ def make_df_from_iss(html):
     soup = BeautifulSoup(html, 'lxml')
 
     cols_ = [x['name'].lower() for x in soup.find_all('columns')[0].find_all('column')]
+
     try:
         meta_ = [x['name'].lower() for x in soup.find_all('columns')[1].find_all('column')]
     except Exception as e:
@@ -21,11 +22,13 @@ def make_df_from_iss(html):
 
     df = pd.DataFrame(columns=cols_)
 
-
     for d in [{k:x[k] for k in cols_} for x in soup.find_all('rows')[0].find_all('row')]:
         df = df.append(d,ignore_index=True)
 
-    return df
+    for d in [{k:int(x[k]) for k in meta_} for x in soup.find_all('rows')[1].find_all('row')]:
+        meta_dict.update(d)
+
+    return df,meta_dict
 
 def mk_date_format(self, date_ = None):
         if date_ == None:
@@ -35,7 +38,7 @@ def mk_date_format(self, date_ = None):
             self.date_ = date_
             return datetime.datetime.strftime(date_,"%Y-%m-%d")
 
-def make_df_from_iss_new(self, market='shares', from_ = '2014-01-01', till_=None):
+def make_df_from_iss_new(self, market='shares', from_ = '2019-12-01', till_=None):
 
         if till_ == None:
             till_ = mk_date_format(self)
@@ -48,7 +51,7 @@ def make_df_from_iss_new(self, market='shares', from_ = '2014-01-01', till_=None
         df_target = pd.DataFrame()
 
         if market=='shares':
-            iterator =  self.secids
+            iterator =  self.secids[:2]
             boardgroup='/boardgroups/57/'
 
         elif market=='index':
@@ -61,24 +64,7 @@ def make_df_from_iss_new(self, market='shares', from_ = '2014-01-01', till_=None
 
                 html = requests.get(micex_url.format(market,boardgroup,sec,from_,till_,start_,limit_)).text
 
-                soup = BeautifulSoup(html, 'lxml')
-
-                cols_ = [x['name'].lower() for x in soup.find_all('columns')[0].find_all('column')]
-
-                try:
-                    meta_ = [x['name'].lower() for x in soup.find_all('columns')[1].find_all('column')]
-                except Exception as e:
-                    print(str(e))
-
-                col_types = {x['name']:x['type'] for x in soup.find_all('column')}
-
-                df = pd.DataFrame(columns=cols_)
-
-                for d in [{k:x[k] for k in cols_} for x in soup.find_all('rows')[0].find_all('row')]:
-                    df = df.append(d,ignore_index=True)
-
-                for d in [{k:int(x[k]) for k in meta_} for x in soup.find_all('rows')[1].find_all('row')]:
-                    meta_dict.update(d)
+                df, meta_dict = make_df_from_iss(html)
 
                 total = meta_dict['total']
                 start_ +=100
@@ -147,12 +133,12 @@ holidays_= [datetime.datetime(y,m,d)
 #c
 dev = pd.DataFrame()
 
-startdate = datetime.datetime(2014,1,1)
+startdate = datetime.datetime(2019,12,1)
 enddate = datetime.datetime.now()
 
 while startdate<=enddate:
     r = requests.get(deviation_url.format(datetime.datetime.strftime(startdate,"%Y-%m-%d")))
-    dev_temp = make_df_from_iss(r.text)
+    dev_temp, _ = make_df_from_iss(r.text)
     dev = pd.concat([dev,dev_temp], sort=False, ignore_index=True)
     startdate+=datetime.timedelta(1)
     while startdate.weekday() in [5,6] or startdate in holidays_:
