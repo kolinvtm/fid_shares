@@ -86,9 +86,9 @@ class Parser:
                 WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'card-pages')))
                 sleep(1.5)
 
-                d[num] = {}
-                d[num].update({'Company_Name':company})
-                d[num].update()
+                dict_comp_sp[num] = {}
+                dict_comp_sp[num].update({'Company_Name':company})
+                dict_comp_sp[num].update()
                 
                 """
                 need some func here
@@ -100,6 +100,8 @@ class Parser:
 
             except Exception as e:
                 print(str(e))
+            
+        return dict_comp_sp
 
 
 
