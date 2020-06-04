@@ -15,31 +15,37 @@ from selenium.webdriver.common.keys import Keys
 from difflib import SequenceMatcher
 
 
+url = "" #paste url address
+username = "" # paste credentials
+password = "" # paste credentials
+
 class Parser:
     def __init__(self, company_name):
-        self.login = None
-        self.password = None
-        self.driver = None
+        global username, password
+        self.login = username
+        self.password = password
+        self.driver = None # webdriver.Chrome(path/to/chromedriver)
         self.search_company = company_name
-        
+
         self.start()
         self.auth()
-    
+
     def start(self):
         pass
-        
-    
+
+
     def auth(self):
-        self.driver.get('')
+        global url
+        self.driver.get(url)
         self.driver.find_element_by_name('username').send_keys(self.login)
         self.driver.find_element_by_name('password').send_keys(self.password)
         self.driver.find_elements_by_tag_name('button')[0].click()
-        
-    
+
+
     def parse_coeff(self):
-        url_cls_inf = ''
+        url_cls_inf = '' #нужно вставить url
         dict_comp_sp=collections.defaultdict()
-        
+
         for num, company in enumerate(self.search_company):
             try:
                 self.driver.get(url_cls_inf)
@@ -79,32 +85,36 @@ class Parser:
                 self.driver.get(urls_arr[taget_id][:-3]+str(524))
                 WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'card-pages')))
                 sleep(1.5)
+
+                d[num] = {}
+                d[num].update({'Company_Name':company})
+                d[num].update()
                 
-               """
-               need some func here
+                """
+                need some func here
                """
 
                 print('success'.upper(), num, company, sep=' ')
-                
+
                 count_BS=len(company)+2
-                
+
             except Exception as e:
                 print(str(e))
-        
-        
-        
+
+
+
 
     def clear_input_sp(self, n=50):
         for i in range(n):
             self.driver.find_elements_by_tag_name('input')[0].send_keys(Keys.BACKSPACE)
-            
+
     def similar(self, a, b):
         return SequenceMatcher(None, a, b).ratio()
-            
-            
+
+
     def close(self):
         self.driver.close()
-        
+
     def got_524(self, self):
         #that got 524 page
 
@@ -116,10 +126,10 @@ class Parser:
             if coeff_row.count('NaN') < len(coeff_row)-1:
                 d[coeff_row[0]]= coeff_row[1:]
             return d
-            
-     def is_bank(self):
+
+    def is_bank(self):
          #for banks
-         
+
         d = {}
 
         head_ = [h.text for h in s.driver.find_elements_by_tag_name('thead')[0].find_elements_by_tag_name('th')]
@@ -129,4 +139,4 @@ class Parser:
             coeff_row = [y.text if y.text !='' else 'NaN' for y  in x.find_elements_by_tag_name('td')]
             if coeff_row.count('NaN') < len(coeff_row)-1:
                 d[coeff_row[0]]= {k:v for k,v in zip(head_[1:],coeff_row[1:])}
-         return d
+        return d
